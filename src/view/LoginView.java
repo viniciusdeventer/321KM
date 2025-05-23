@@ -20,7 +20,6 @@ public class LoginView extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // PAINEL BRANCO (Login)
         JPanel painelLogin = new JPanel();
         painelLogin.setLayout(new BoxLayout(painelLogin, BoxLayout.Y_AXIS));
         painelLogin.setBackground(new Color(245, 245, 245));

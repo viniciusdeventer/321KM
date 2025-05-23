@@ -9,6 +9,6 @@ public class DefaultTableModelNaoEditavel extends DefaultTableModel {
 
     @Override
     public boolean isCellEditable(int row, int column) {
-        return false; // Nenhuma célula pode ser editada
+        return false;
     }
 }

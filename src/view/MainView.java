@@ -11,6 +11,7 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 
 public class MainView extends JFrame {
+
     public MainView(Usuario user) {
         setTitle("321KM");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -19,8 +20,8 @@ public class MainView extends JFrame {
 
         JPanel painelPrincipal = new JPanel(new BorderLayout());
 
+        // Menu lateral
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Menu");
-
         DefaultMutableTreeNode cadastros = new DefaultMutableTreeNode("Cadastros");
         cadastros.add(new DefaultMutableTreeNode("Usuários"));
         cadastros.add(new DefaultMutableTreeNode("Produtos"));
@@ -37,8 +38,8 @@ public class MainView extends JFrame {
         JScrollPane scrollPane = new JScrollPane(treeMenu);
         scrollPane.setPreferredSize(new Dimension(220, 0));
 
+        // Painel de conteúdo
         JPanel painelConteudo = new JPanel(new BorderLayout());
-
         TelaInicialPanel telaInicial = new TelaInicialPanel();
         painelConteudo.add(telaInicial, BorderLayout.CENTER);
 
@@ -47,7 +48,7 @@ public class MainView extends JFrame {
             Object selectedNode = path.getLastPathComponent();
 
             if (selectedNode instanceof DefaultMutableTreeNode node) {
-                if (!node.isLeaf()) return; 
+                if (!node.isLeaf()) return;
 
                 String selected = node.toString();
                 painelConteudo.removeAll();
@@ -55,7 +56,7 @@ public class MainView extends JFrame {
                 switch (selected) {
                     case "Usuários" -> painelConteudo.add(new UsuarioPanel(), BorderLayout.CENTER);
                     case "Produtos" -> painelConteudo.add(new ProdutoPanel(), BorderLayout.CENTER);
-                    default -> painelConteudo.add(telaInicial, BorderLayout.CENTER);  // fallback
+                    default -> painelConteudo.add(telaInicial, BorderLayout.CENTER);
                 }
 
                 painelConteudo.revalidate();
@@ -63,6 +64,46 @@ public class MainView extends JFrame {
             }
         });
 
+        ImageIcon imagemOriginal = new ImageIcon(getClass().getResource("/ui/assets/imagens/logo_321KM.png"));
+        Image imagemRedimensionada = imagemOriginal.getImage().getScaledInstance(100, 32, Image.SCALE_SMOOTH);
+        ImageIcon imagem = new ImageIcon(imagemRedimensionada);
+        JLabel labelImagem = new JLabel(imagem);
+
+        JPanel painelTopo = new JPanel(new BorderLayout());
+        painelTopo.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+        painelTopo.add(labelImagem, BorderLayout.WEST);
+
+        JPanel painelDireita = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        
+        JLabel labelUsuario = new JLabel("" + user.getId());
+        labelUsuario.setOpaque(true);
+        labelUsuario.setBackground(Color.BLACK);
+        labelUsuario.setForeground(Color.WHITE);
+        labelUsuario.setBorder(BorderFactory.createEmptyBorder(3, 8, 3, 8));
+        
+        JButton botaoMenu = new JButton("Menu"); 
+
+        JPopupMenu popupMenu = new JPopupMenu();
+
+        JMenuItem itemLogout = new JMenuItem("Logout");
+        itemLogout.addActionListener(e -> {
+            int confirmar = JOptionPane.showConfirmDialog(this, "Deseja realmente sair?", "Logout", JOptionPane.YES_NO_OPTION);
+            if (confirmar == JOptionPane.YES_OPTION) {
+                dispose();
+                new LoginView();
+            }
+        });
+
+        popupMenu.add(itemLogout);
+
+        botaoMenu.addActionListener(e -> popupMenu.show(botaoMenu, 0, botaoMenu.getHeight()));
+
+        painelDireita.add(labelUsuario);
+        painelDireita.add(botaoMenu);
+        painelTopo.add(painelDireita, BorderLayout.EAST);
+
+        painelPrincipal.add(painelTopo, BorderLayout.NORTH);
         painelPrincipal.add(scrollPane, BorderLayout.WEST);
         painelPrincipal.add(painelConteudo, BorderLayout.CENTER);
 
