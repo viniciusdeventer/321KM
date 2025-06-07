@@ -3,12 +3,16 @@ package view;
 import model.Usuario;
 import view.produto.ProdutoPanel;
 import view.usuario.UsuarioPanel;
+import view.fornecedor.FornecedorPanel;
 
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.*;
+import static com.formdev.flatlaf.FlatClientProperties.STYLE;
+import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.FlatClientProperties;
 
 public class MainView extends JFrame {
 
@@ -25,11 +29,9 @@ public class MainView extends JFrame {
         DefaultMutableTreeNode cadastros = new DefaultMutableTreeNode("Cadastros");
         cadastros.add(new DefaultMutableTreeNode("Usuários"));
         cadastros.add(new DefaultMutableTreeNode("Produtos"));
-
-        DefaultMutableTreeNode relatorios = new DefaultMutableTreeNode("Relatórios");
+        cadastros.add(new DefaultMutableTreeNode("Fornecedores"));
 
         root.add(cadastros);
-        root.add(relatorios);
 
         JTree treeMenu = new JTree(root);
         treeMenu.setRootVisible(false);
@@ -38,7 +40,6 @@ public class MainView extends JFrame {
         JScrollPane scrollPane = new JScrollPane(treeMenu);
         scrollPane.setPreferredSize(new Dimension(220, 0));
 
-        // Painel de conteúdo
         JPanel painelConteudo = new JPanel(new BorderLayout());
         TelaInicialPanel telaInicial = new TelaInicialPanel();
         painelConteudo.add(telaInicial, BorderLayout.CENTER);
@@ -56,6 +57,7 @@ public class MainView extends JFrame {
                 switch (selected) {
                     case "Usuários" -> painelConteudo.add(new UsuarioPanel(), BorderLayout.CENTER);
                     case "Produtos" -> painelConteudo.add(new ProdutoPanel(), BorderLayout.CENTER);
+                    case "Fornecedores" -> painelConteudo.add(new FornecedorPanel(), BorderLayout.CENTER);
                     default -> painelConteudo.add(telaInicial, BorderLayout.CENTER);
                 }
 
@@ -76,31 +78,24 @@ public class MainView extends JFrame {
 
         JPanel painelDireita = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
         
-        JLabel labelUsuario = new JLabel("" + user.getId());
+        JLabel labelUsuario = new JLabel("Teste de Nome" + user.getId());
         labelUsuario.setOpaque(true);
-        labelUsuario.setBackground(Color.BLACK);
-        labelUsuario.setForeground(Color.WHITE);
+        //labelUsuario.setBackground(Color.BLACK);
+        //labelUsuario.setForeground(Color.WHITE);
         labelUsuario.setBorder(BorderFactory.createEmptyBorder(3, 8, 3, 8));
-        
-        JButton botaoMenu = new JButton("Menu"); 
-
-        JPopupMenu popupMenu = new JPopupMenu();
+        labelUsuario.putClientProperty(STYLE, "arc: 25; background: #040404; foreground: #FFFFFF;");
 
         JMenuItem itemLogout = new JMenuItem("Logout");
         itemLogout.addActionListener(e -> {
             int confirmar = JOptionPane.showConfirmDialog(this, "Deseja realmente sair?", "Logout", JOptionPane.YES_NO_OPTION);
             if (confirmar == JOptionPane.YES_OPTION) {
                 dispose();
-                new LoginView();
+                new LoginView().setVisible(true);
             }
         });
 
-        popupMenu.add(itemLogout);
-
-        botaoMenu.addActionListener(e -> popupMenu.show(botaoMenu, 0, botaoMenu.getHeight()));
-
         painelDireita.add(labelUsuario);
-        painelDireita.add(botaoMenu);
+        painelDireita.add(itemLogout);
         painelTopo.add(painelDireita, BorderLayout.EAST);
 
         painelPrincipal.add(painelTopo, BorderLayout.NORTH);

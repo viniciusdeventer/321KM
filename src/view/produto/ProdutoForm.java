@@ -33,7 +33,7 @@ public class ProdutoForm extends JDialog {
         JTextField txtValor = new JTextField(15);
         txtValor.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JComboBox<String> cbTipo = new JComboBox<>(new String[]{"Serviço", "Passagem"});
+        JComboBox<String> cbTipo = new JComboBox<>(new String[]{"Serviço", "Passagem", "Pacote"});
         cbTipo.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JComboBox<String> cbStatus = new JComboBox<>(new String[]{"Inativo", "Ativo"});
@@ -87,7 +87,7 @@ public class ProdutoForm extends JDialog {
         // ID
         JPanel painelId = new JPanel();
         painelId.setLayout(new BoxLayout(painelId, BoxLayout.Y_AXIS));
-        JLabel lblId = new JLabel("ID:");
+        JLabel lblId = new JLabel("ID");
         lblId.setAlignmentX(Component.LEFT_ALIGNMENT);
         txtId.setAlignmentX(Component.LEFT_ALIGNMENT);
         painelId.add(lblId);
@@ -97,7 +97,7 @@ public class ProdutoForm extends JDialog {
         // Nome
         JPanel painelNome = new JPanel();
         painelNome.setLayout(new BoxLayout(painelNome, BoxLayout.Y_AXIS));
-        JLabel lblNome = new JLabel("Nome:");
+        JLabel lblNome = new JLabel("Nome");
         lblNome.setAlignmentX(Component.LEFT_ALIGNMENT);
         painelNome.add(lblNome);
         painelNome.add(txtNome);
@@ -108,14 +108,14 @@ public class ProdutoForm extends JDialog {
         linha1.setLayout(new BoxLayout(linha1, BoxLayout.X_AXIS));
         linha1.setAlignmentX(Component.LEFT_ALIGNMENT);
         linha1.add(painelId);
-        linha1.add(Box.createRigidArea(new Dimension(10, 0))); // Espaço de 10px
+        linha1.add(Box.createRigidArea(new Dimension(10, 0))); 
         linha1.add(painelNome);
 
         // Descrição
         JPanel painelDesc = new JPanel();
         painelDesc.setLayout(new BoxLayout(painelDesc, BoxLayout.Y_AXIS));
         painelDesc.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel lblDesc = new JLabel("Descrição:");
+        JLabel lblDesc = new JLabel("Descrição");
         lblDesc.setAlignmentX(Component.LEFT_ALIGNMENT);
         painelDesc.add(lblDesc);
         painelDesc.add(txtDesc);
@@ -126,21 +126,21 @@ public class ProdutoForm extends JDialog {
 
         JPanel painelValor = new JPanel();
         painelValor.setLayout(new BoxLayout(painelValor, BoxLayout.Y_AXIS));
-        JLabel lblValor = new JLabel("Valor:");
+        JLabel lblValor = new JLabel("Valor");
         lblValor.setAlignmentX(Component.LEFT_ALIGNMENT);
         painelValor.add(lblValor);
         painelValor.add(txtValor);
 
         JPanel painelTipo = new JPanel();
         painelTipo.setLayout(new BoxLayout(painelTipo, BoxLayout.Y_AXIS));
-        JLabel lblTipo = new JLabel("Tipo:");
+        JLabel lblTipo = new JLabel("Tipo");
         lblTipo.setAlignmentX(Component.LEFT_ALIGNMENT);
         painelTipo.add(lblTipo);
         painelTipo.add(cbTipo);
 
         JPanel painelStatus = new JPanel();
         painelStatus.setLayout(new BoxLayout(painelStatus, BoxLayout.Y_AXIS));
-        JLabel lblStatus = new JLabel("Status:");
+        JLabel lblStatus = new JLabel("Status");
         lblStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
         painelStatus.add(lblStatus);
         painelStatus.add(cbStatus);

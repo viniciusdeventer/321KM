@@ -25,7 +25,7 @@ public class ProdutoPanel extends JPanel {
 
         btnBuscar.addActionListener(e -> atualizarTabela());
 
-        painelBusca.add(new JLabel("Buscar:"));
+        painelBusca.add(new JLabel("Buscar"));
         painelBusca.add(campoBusca);
         painelBusca.add(btnBuscar);
 
