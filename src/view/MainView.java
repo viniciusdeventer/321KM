@@ -4,15 +4,13 @@ import model.Usuario;
 import view.produto.ProdutoPanel;
 import view.usuario.UsuarioPanel;
 import view.fornecedor.FornecedorPanel;
-
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import static com.formdev.flatlaf.FlatClientProperties.STYLE;
-import com.formdev.flatlaf.FlatLightLaf;
-import com.formdev.flatlaf.FlatClientProperties;
 
 public class MainView extends JFrame {
 
@@ -36,13 +34,35 @@ public class MainView extends JFrame {
         JTree treeMenu = new JTree(root);
         treeMenu.setRootVisible(false);
         treeMenu.setShowsRootHandles(true);
+        treeMenu.setBackground(Color.WHITE);
+        treeMenu.setOpaque(true);
 
-        JScrollPane scrollPane = new JScrollPane(treeMenu);
-        scrollPane.setPreferredSize(new Dimension(220, 0));
+        JPanel menuLateral = new JPanel(new BorderLayout());
+        menuLateral.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        menuLateral.add(new JScrollPane(treeMenu), BorderLayout.CENTER);
+        menuLateral.setPreferredSize(new Dimension(240, 0));
 
         JPanel painelConteudo = new JPanel(new BorderLayout());
-        TelaInicialPanel telaInicial = new TelaInicialPanel();
-        painelConteudo.add(telaInicial, BorderLayout.CENTER);
+        
+        painelConteudo.setBackground(Color.WHITE);
+        painelConteudo.setOpaque(false);
+        painelConteudo.setLayout(new BoxLayout(painelConteudo, BoxLayout.Y_AXIS));
+        painelConteudo.setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50));
+
+        JLabel titulo = new JLabel("Bem-vindo ao sistema da 321KM!");
+        titulo.setAlignmentX(CENTER_ALIGNMENT);
+        titulo.setFont(new Font("Arial", Font.BOLD, 36));
+        titulo.setForeground(Color.BLACK);
+
+        JLabel subtitulo = new JLabel("Sua plataforma de gestão de viagens.");
+        subtitulo.setAlignmentX(CENTER_ALIGNMENT);
+        subtitulo.setFont(new Font("Arial", Font.PLAIN, 20));
+        subtitulo.setForeground(Color.BLACK);
+        
+        painelConteudo.add(Box.createVerticalGlue());
+        painelConteudo.add(titulo);
+        painelConteudo.add(subtitulo);
+        painelConteudo.add(Box.createVerticalGlue()); 
 
         treeMenu.addTreeSelectionListener((TreeSelectionEvent e) -> {
             TreePath path = e.getPath();
@@ -58,7 +78,7 @@ public class MainView extends JFrame {
                     case "Usuários" -> painelConteudo.add(new UsuarioPanel(), BorderLayout.CENTER);
                     case "Produtos" -> painelConteudo.add(new ProdutoPanel(), BorderLayout.CENTER);
                     case "Fornecedores" -> painelConteudo.add(new FornecedorPanel(), BorderLayout.CENTER);
-                    default -> painelConteudo.add(telaInicial, BorderLayout.CENTER);
+                    default -> painelConteudo.add(painelConteudo, BorderLayout.CENTER);
                 }
 
                 painelConteudo.revalidate();
@@ -78,14 +98,14 @@ public class MainView extends JFrame {
 
         JPanel painelDireita = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
         
-        JLabel labelUsuario = new JLabel("Teste de Nome" + user.getId());
+        JLabel labelUsuario = new JLabel("" + user.getId());
         labelUsuario.setOpaque(true);
         //labelUsuario.setBackground(Color.BLACK);
         //labelUsuario.setForeground(Color.WHITE);
         labelUsuario.setBorder(BorderFactory.createEmptyBorder(3, 8, 3, 8));
         labelUsuario.putClientProperty(STYLE, "arc: 25; background: #040404; foreground: #FFFFFF;");
 
-        JMenuItem itemLogout = new JMenuItem("Logout");
+        JButton itemLogout = new JButton("Logout");
         itemLogout.addActionListener(e -> {
             int confirmar = JOptionPane.showConfirmDialog(this, "Deseja realmente sair?", "Logout", JOptionPane.YES_NO_OPTION);
             if (confirmar == JOptionPane.YES_OPTION) {
@@ -99,7 +119,7 @@ public class MainView extends JFrame {
         painelTopo.add(painelDireita, BorderLayout.EAST);
 
         painelPrincipal.add(painelTopo, BorderLayout.NORTH);
-        painelPrincipal.add(scrollPane, BorderLayout.WEST);
+        painelPrincipal.add(menuLateral, BorderLayout.WEST);
         painelPrincipal.add(painelConteudo, BorderLayout.CENTER);
 
         setContentPane(painelPrincipal);

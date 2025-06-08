@@ -24,6 +24,7 @@ public class FornecedorDAO {
             	lista.add(new Fornecedor(
         		    rs.getInt("ID_Fornecedor"),
         		    rs.getString("Nome"),
+        		    rs.getInt("Tipo_Pessoa"),
         		    rs.getString("Inscricao"),
         		    rs.getString("Fantasia"),
         		    rs.getString("Telefone"),
@@ -57,6 +58,7 @@ public class FornecedorDAO {
                 busca.add(new Fornecedor(
         		    rs.getInt("ID_Fornecedor"),
         		    rs.getString("Nome"),
+        		    rs.getInt("Tipo_Pessoa"),
         		    rs.getString("Inscricao"),
         		    rs.getString("Fantasia"),
         		    rs.getString("Telefone"),
@@ -84,38 +86,40 @@ public class FornecedorDAO {
             PreparedStatement stmt;
 
             if (novo) {
-                sql = "INSERT INTO Fornecedores (Nome, Inscricao, Fantasia, Telefone, Email, Endereco, Numero, Complemento, Bairro, Cidade, Estado, CEP, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                sql = "INSERT INTO Fornecedores (Nome, Tipo_Pessoa, Inscricao, Fantasia, Telefone, Email, Endereco, Numero, Complemento, Bairro, Cidade, Estado, CEP, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 stmt = conn.prepareStatement(sql);
                 stmt.setString(1, u.getNome());
-                stmt.setString(2, u.getInscricao());
-                stmt.setString(3, u.getFantasia());
-                stmt.setString(4, u.getTelefone());
-                stmt.setString(5, u.getEmail());
-                stmt.setString(6, u.getEndereco());
-                stmt.setString(7, u.getNumero());
-                stmt.setString(8, u.getComplemento());
-                stmt.setString(9, u.getBairro());
-                stmt.setString(10, u.getCidade());
-                stmt.setString(11, u.getEstado());
-                stmt.setString(12, u.getCEP());
-                stmt.setInt(13, u.getStatus());
+                stmt.setInt(2, u.getTipoPessoa());
+                stmt.setString(3, u.getInscricao());
+                stmt.setString(4, u.getFantasia());
+                stmt.setString(5, u.getTelefone());
+                stmt.setString(6, u.getEmail());
+                stmt.setString(7, u.getEndereco());
+                stmt.setString(8, u.getNumero());
+                stmt.setString(9, u.getComplemento());
+                stmt.setString(10, u.getBairro());
+                stmt.setString(11, u.getCidade());
+                stmt.setString(12, u.getEstado());
+                stmt.setString(13, u.getCEP());
+                stmt.setInt(14, u.getStatus());
             } else {
-                sql = "UPDATE Fornecedores SET Nome=?, Inscricao=?, Fantasia=?, Telefone=?, Email=?, Endereco=?, Numero=?, Complemento=?, Bairro=?, Cidade=?, Estado=?, CEP=?, Status=? WHERE ID_Fornecedor=?";
+                sql = "UPDATE Fornecedores SET Nome=?, Tipo_Pessoa=?, Inscricao=?, Fantasia=?, Telefone=?, Email=?, Endereco=?, Numero=?, Complemento=?, Bairro=?, Cidade=?, Estado=?, CEP=?, Status=? WHERE ID_Fornecedor=?";
                 stmt = conn.prepareStatement(sql);
                 stmt.setString(1, u.getNome());
-                stmt.setString(2, u.getInscricao());
-                stmt.setString(3, u.getFantasia());
-                stmt.setString(4, u.getTelefone());
-                stmt.setString(5, u.getEmail());
-                stmt.setString(6, u.getEndereco());
-                stmt.setString(7, u.getNumero());
-                stmt.setString(8, u.getComplemento());
-                stmt.setString(9, u.getBairro());
-                stmt.setString(10, u.getCidade());
-                stmt.setString(11, u.getEstado());
-                stmt.setString(12, u.getCEP());
-                stmt.setInt(13, u.getStatus());
-                stmt.setInt(14, u.getId());
+                stmt.setInt(2, u.getTipoPessoa());
+                stmt.setString(3, u.getInscricao());
+                stmt.setString(4, u.getFantasia());
+                stmt.setString(5, u.getTelefone());
+                stmt.setString(6, u.getEmail());
+                stmt.setString(7, u.getEndereco());
+                stmt.setString(8, u.getNumero());
+                stmt.setString(9, u.getComplemento());
+                stmt.setString(10, u.getBairro());
+                stmt.setString(11, u.getCidade());
+                stmt.setString(12, u.getEstado());
+                stmt.setString(13, u.getCEP());
+                stmt.setInt(14, u.getStatus());
+                stmt.setInt(15, u.getId());
             }
 
             stmt.executeUpdate();

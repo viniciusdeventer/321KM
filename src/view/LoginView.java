@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import static com.formdev.flatlaf.FlatClientProperties.STYLE;
 
 public class LoginView extends JFrame {
     public LoginView() {
@@ -65,6 +66,7 @@ public class LoginView extends JFrame {
         btnEntrar.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnEntrar.setMaximumSize(new Dimension(200, 40));
         btnEntrar.setPreferredSize(new Dimension(200, 40));
+        btnEntrar.putClientProperty(STYLE, "arc: 50; background: #040404; foreground: #FFF; focusWidth: 0;");
 
         btnEntrar.addActionListener(e -> {
             UsuarioDAO dao = new UsuarioDAO();

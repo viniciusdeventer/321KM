@@ -3,6 +3,7 @@ package model;
 public class Fornecedor {
     private int id;
     private String nome;
+    private int tipoPessoa;
     private String inscricao;
     private String fantasia;
     private String telefone;
@@ -17,9 +18,10 @@ public class Fornecedor {
     private int status;
 
     public Fornecedor() {}
-    public Fornecedor(int id, String nome, String inscricao, String fantasia, String telefone, String email, String endereco, String numero, String complemento, String bairro, String cidade, String estado, String cep, int status) {
+    public Fornecedor(int id, String nome, int tipoPessoa, String inscricao, String fantasia, String telefone, String email, String endereco, String numero, String complemento, String bairro, String cidade, String estado, String cep, int status) {
     	this.id = id;
     	this.nome = nome;
+    	this.tipoPessoa = tipoPessoa;
     	this.inscricao = inscricao;
     	this.fantasia = fantasia;
     	this.telefone = telefone;
@@ -46,6 +48,13 @@ public class Fornecedor {
 	}
 	public void setNome(String nome) {
 		this.nome = nome;
+	}
+	
+    public int getTipoPessoa() {
+		return tipoPessoa;
+	}
+	public void setTipoPessoa(int tipoPessoa) {
+		this.tipoPessoa = tipoPessoa;
 	}
 	
     public String getInscricao() {

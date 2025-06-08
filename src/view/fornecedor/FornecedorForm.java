@@ -3,17 +3,36 @@ package view.fornecedor;
 import dao.FornecedorDAO;
 import model.Fornecedor;
 
+import dao.ContratoDAO;
+import model.Contrato;
+
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
+
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import com.toedter.calendar.JDateChooser;
+import org.apache.pdfbox.Loader;
 
 public class FornecedorForm extends JDialog {
+	
+	private JPanel painelAnexo;
+    private Contrato contratoAtual;
+	
     public FornecedorForm(Component parent, Fornecedor fornecedor) {
         super(SwingUtilities.getWindowAncestor(parent) instanceof Frame
                 ? (Frame) SwingUtilities.getWindowAncestor(parent)
                 : null, true);
 
         setTitle(fornecedor == null ? "Novo Fornecedor" : "Editar Fornecedor");
-        setSize(600, 500);
+        setSize(700, 450);
         setLocationRelativeTo(parent);
 
         JTextField txtId = new JTextField(5);
@@ -25,6 +44,7 @@ public class FornecedorForm extends JDialog {
         txtNome.setPreferredSize(new Dimension(550, 25));
         txtNome.setMaximumSize(new Dimension(550, 25));
         txtNome.setAlignmentX(Component.LEFT_ALIGNMENT);
+        txtId.setEnabled(false);
 
         JTextField txtFantasia = new JTextField();
         txtFantasia.setPreferredSize(new Dimension(280, 25));
@@ -35,6 +55,9 @@ public class FornecedorForm extends JDialog {
         txtInscricao.setPreferredSize(new Dimension(280, 25));
         txtInscricao.setMaximumSize(new Dimension(280, 25));
         txtInscricao.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JComboBox<String> cbTipo = new JComboBox<>(new String[]{"Jurídica", "Física"});
+        cbTipo.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextField txtTelefone = new JTextField();
         txtTelefone.setPreferredSize(new Dimension(240, 25));
@@ -87,6 +110,7 @@ public class FornecedorForm extends JDialog {
         if (fornecedor != null) {
             txtId.setText(String.valueOf(fornecedor.getId()));
             txtNome.setText(fornecedor.getNome());
+            cbTipo.setSelectedIndex(fornecedor.getTipoPessoa());
             txtInscricao.setText(fornecedor.getInscricao());
             txtFantasia.setText(fornecedor.getFantasia());
             txtTelefone.setText(fornecedor.getTelefone());
@@ -101,50 +125,11 @@ public class FornecedorForm extends JDialog {
             cbStatus.setSelectedIndex(fornecedor.getStatus());
         }
 
-        txtId.setEnabled(false);
-
         JButton btnSalvar = new JButton("Confirmar");
-        btnSalvar.addActionListener(e -> {
-            String nome = txtNome.getText().trim();
-            String insc = txtInscricao.getText().trim();
-            String fants = txtFantasia.getText().trim();
-            String tel = txtTelefone.getText().trim();
-            String email = txtEmail.getText().trim();
-            String logr = txtEndereco.getText().trim();
-            String num = txtNumero.getText().trim();
-            String comp = txtComplemento.getText().trim();
-            String bairro = txtBairro.getText().trim();
-            String cidade = txtCidade.getText().trim();
-            String estado = txtEstado.getText().trim();
-            String cep = txtCep.getText().trim();
 
-            if (nome.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Nome e Valor são obrigatórios.", "Preenchimento Obrigatório", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            Fornecedor p = fornecedor == null ? new Fornecedor() : fornecedor;
-            p.setNome(nome);
-            p.setInscricao(insc);
-            p.setFantasia(fants);
-            p.setTelefone(tel);
-            p.setEmail(email);
-            p.setEndereco(logr);
-            p.setNumero(num);
-            p.setComplemento(comp);
-            p.setBairro(bairro);
-            p.setCidade(cidade);
-            p.setEstado(estado);
-            p.setCEP(cep);
-            p.setStatus(cbStatus.getSelectedIndex());
-
-            new FornecedorDAO().salvar(p);
-            dispose();
-        });
-
-        JPanel form = new JPanel();
-        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
-        form.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel abaGeral = new JPanel();
+        abaGeral.setLayout(new BoxLayout(abaGeral, BoxLayout.Y_AXIS));
+        abaGeral.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // ID
         JPanel painelId = new JPanel();
@@ -164,7 +149,41 @@ public class FornecedorForm extends JDialog {
         painelNome.add(lblNome);
         painelNome.add(txtNome);
         painelNome.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JPanel painelTipo = new JPanel();
+        painelTipo.setLayout(new BoxLayout(painelTipo, BoxLayout.Y_AXIS));
+        JLabel lblTipo = new JLabel("Tipo Pessoa");
+        lblTipo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelTipo.add(lblTipo);
+        painelTipo.add(cbTipo);
+        painelTipo.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        JPanel painelInscricao = new JPanel();
+        painelInscricao.setLayout(new BoxLayout(painelInscricao, BoxLayout.Y_AXIS));
+        JLabel lblInscricao = new JLabel("CNPJ");
+
+	    if (fornecedor != null) {
+	         cbTipo.setSelectedIndex(fornecedor.getTipoPessoa());
+	         if (fornecedor.getTipoPessoa() == 1) {
+	             lblInscricao.setText("CPF");
+	         } else {
+	             lblInscricao.setText("CNPJ");
+	         }
+	     }
+	
+	     cbTipo.addActionListener(e -> {
+	         if (cbTipo.getSelectedIndex() == 1) {
+	             lblInscricao.setText("CPF");
+	         } else {
+	             lblInscricao.setText("CNPJ");
+	         }
+	     });
+
+        lblInscricao.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelInscricao.add(lblInscricao);
+        painelInscricao.add(txtInscricao);
+        painelInscricao.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
         JPanel painelFantasia = new JPanel();
         painelFantasia.setLayout(new BoxLayout(painelFantasia, BoxLayout.Y_AXIS));
         JLabel lblFantasia = new JLabel("Fantasia");
@@ -172,14 +191,6 @@ public class FornecedorForm extends JDialog {
         painelFantasia.add(lblFantasia);
         painelFantasia.add(txtFantasia);
         painelFantasia.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JPanel painelInscricao = new JPanel();
-        painelInscricao.setLayout(new BoxLayout(painelInscricao, BoxLayout.Y_AXIS));
-        JLabel lblInscricao = new JLabel("Inscrição");
-        lblInscricao.setAlignmentX(Component.LEFT_ALIGNMENT);
-        painelInscricao.add(lblInscricao);
-        painelInscricao.add(txtInscricao);
-        painelInscricao.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPanel painelTelefone = new JPanel();
         painelTelefone.setLayout(new BoxLayout(painelTelefone, BoxLayout.Y_AXIS));
@@ -268,73 +279,318 @@ public class FornecedorForm extends JDialog {
         linha1.add(painelId);
         linha1.add(Box.createRigidArea(new Dimension(10, 0)));
         linha1.add(painelNome);
+        linha1.add(Box.createRigidArea(new Dimension(10, 0)));
+        linha1.add(painelTipo);
+        linha1.add(Box.createRigidArea(new Dimension(10, 0)));
+        linha1.add(painelInscricao);
 
         JPanel linha2 = new JPanel();
         linha2.setLayout(new BoxLayout(linha2, BoxLayout.X_AXIS));
         linha2.setAlignmentX(Component.LEFT_ALIGNMENT);
         linha2.add(painelFantasia);
         linha2.add(Box.createRigidArea(new Dimension(10, 0)));
-        linha2.add(painelInscricao);
+        linha2.add(painelTelefone);
+        linha2.add(Box.createRigidArea(new Dimension(10, 0)));
+        linha2.add(painelEmail);
 
         JPanel linha3 = new JPanel();
         linha3.setLayout(new BoxLayout(linha3, BoxLayout.X_AXIS));
         linha3.setAlignmentX(Component.LEFT_ALIGNMENT);
-        linha3.add(painelTelefone);
+        linha3.add(painelCep);
         linha3.add(Box.createRigidArea(new Dimension(10, 0)));
-        linha3.add(painelEmail);
+        linha3.add(painelEndereco);
+        linha3.add(Box.createRigidArea(new Dimension(10, 0)));
+        linha3.add(painelNumero);
+        linha3.add(Box.createRigidArea(new Dimension(10, 0)));
+        linha3.add(painelComplemento);
 
         JPanel linha4 = new JPanel();
         linha4.setLayout(new BoxLayout(linha4, BoxLayout.X_AXIS));
         linha4.setAlignmentX(Component.LEFT_ALIGNMENT);
-        linha4.add(painelCep);
+        linha4.add(painelBairro);
         linha4.add(Box.createRigidArea(new Dimension(10, 0)));
-        linha4.add(painelEndereco);
+        linha4.add(painelCidade);
         linha4.add(Box.createRigidArea(new Dimension(10, 0)));
-        linha4.add(painelNumero);
-        linha4.add(Box.createRigidArea(new Dimension(10, 0)));
-        linha4.add(painelComplemento);
-
-        JPanel linha5 = new JPanel();
-        linha5.setLayout(new BoxLayout(linha5, BoxLayout.X_AXIS));
-        linha5.setAlignmentX(Component.LEFT_ALIGNMENT);
-        linha5.add(painelBairro);
-        linha5.add(Box.createRigidArea(new Dimension(10, 0)));
-        linha5.add(painelCidade);
-        linha5.add(Box.createRigidArea(new Dimension(10, 0)));
-        linha5.add(painelEstado);
+        linha4.add(painelEstado);
 
         JPanel painelBtn = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         painelBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         painelBtn.add(btnSalvar);
 
         JTabbedPane abas = new JTabbedPane();
-        
-        form.add(linha1);
-        form.add(Box.createVerticalStrut(15));
-        form.add(linha2);
-        form.add(Box.createVerticalStrut(15));
-        form.add(linha3);
-        form.add(Box.createVerticalStrut(15));
-        form.add(linha4);
-        form.add(Box.createVerticalStrut(15));
-        form.add(linha5);
-        form.add(Box.createVerticalStrut(15));
-        form.add(painelStatus);
-        form.add(Box.createVerticalStrut(20));
-        form.add(painelBtn);
 
-        add(form);
-        
-        abas.addTab("Dados Gerais", form);
+        abaGeral.add(linha2);
+        abaGeral.add(Box.createVerticalStrut(15));
+        abaGeral.add(linha3);
+        abaGeral.add(Box.createVerticalStrut(15));
+        abaGeral.add(linha4);
+        abaGeral.add(Box.createVerticalStrut(15));
+        abaGeral.add(painelStatus);
+        abaGeral.add(Box.createVerticalStrut(20));
+        abaGeral.add(painelBtn);
+
+        abas.addTab("Dados Gerais", abaGeral);
 
         JPanel abaContrato = new JPanel();
         abaContrato.setLayout(new BoxLayout(abaContrato, BoxLayout.Y_AXIS));
         abaContrato.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        JTextField txtIdContrato = new JTextField(5);
+        txtIdContrato.setPreferredSize(new Dimension(50, 25));
+        txtIdContrato.setMaximumSize(new Dimension(50, 25));
+        txtIdContrato.setAlignmentX(Component.LEFT_ALIGNMENT);
+        txtIdContrato.setEnabled(false);
 
-        abaContrato.add(new JLabel("Contrato"));
+        JDateChooser dateInicio = new JDateChooser();
+        dateInicio.setDateFormatString("dd/MM/yyyy");
+        dateInicio.setMaximumSize(new Dimension(95, 25));
+        dateInicio.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JDateChooser dateVencimento = new JDateChooser();
+        dateVencimento.setDateFormatString("dd/MM/yyyy");
+        dateVencimento.setMaximumSize(new Dimension(95, 25));
+        dateVencimento.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JTextField txtAnexoPDF = new JTextField();
+        Dimension fixedSize = new Dimension(105, 140);
+
+        txtAnexoPDF.setEditable(false);
+        txtAnexoPDF.setPreferredSize(fixedSize);
+        txtAnexoPDF.setMaximumSize(fixedSize);
+        txtAnexoPDF.setMinimumSize(fixedSize);
+        txtAnexoPDF.setAlignmentX(Component.LEFT_ALIGNMENT);
+        txtAnexoPDF.setBackground(Color.WHITE);
+
+        JButton btnAnexarPDF = new JButton("+");
+
+        btnAnexarPDF.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Arquivos PDF", "pdf"));  
+
+            int option = fileChooser.showOpenDialog(this);
+            if (option == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                txtAnexoPDF.setText(selectedFile.getAbsolutePath());
+
+                try {
+                    PDDocument document = Loader.loadPDF(selectedFile);
+                    PDFRenderer pdfRenderer = new PDFRenderer(document);
+
+                    BufferedImage bim = pdfRenderer.renderImageWithDPI(0, 100, ImageType.RGB);
+                    ImageIcon icon = new ImageIcon(bim.getScaledInstance(105, 140, Image.SCALE_SMOOTH));
+                    JLabel label = new JLabel(icon);
+
+                    JPanel pdfPanel = new JPanel(new BorderLayout());
+                    pdfPanel.add(label, BorderLayout.CENTER);
+                    pdfPanel.setPreferredSize(fixedSize);
+                    pdfPanel.setMaximumSize(fixedSize);
+                    pdfPanel.setMinimumSize(fixedSize);
+
+                    painelAnexo.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+                    painelAnexo.setPreferredSize(fixedSize);
+                    painelAnexo.setMaximumSize(fixedSize);
+                    painelAnexo.setMinimumSize(fixedSize);
+
+                    painelAnexo.removeAll();
+                    painelAnexo.add(pdfPanel);
+                    painelAnexo.revalidate();
+                    painelAnexo.repaint();
+
+                    document.close();
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(this, "Erro ao carregar PDF: " + ex.getMessage(),
+                            "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+        
+        contratoAtual = new ContratoDAO().buscarPorFornecedor(fornecedor.getId());
+        if (contratoAtual != null) {
+            txtIdContrato.setText(String.valueOf(contratoAtual.getId()));
+            dateInicio.setDate(contratoAtual.getDataInicio());
+            dateVencimento.setDate(contratoAtual.getDataVencimento());
+            txtAnexoPDF.setText(contratoAtual.getCaminho());
+            
+            // Carrega visualização do PDF se existir
+            if (contratoAtual.getCaminho() != null && !contratoAtual.getCaminho().isEmpty()) {
+                carregarPDFVisualizacao(contratoAtual.getCaminho());
+            }
+        }
+
+        btnSalvar.addActionListener(e -> {
+            // Dados do Fornecedor
+            String nome = txtNome.getText().trim();
+            String insc = txtInscricao.getText().trim();
+            String fants = txtFantasia.getText().trim();
+            String tel = txtTelefone.getText().trim();
+            String email = txtEmail.getText().trim();
+            String logr = txtEndereco.getText().trim();
+            String num = txtNumero.getText().trim();
+            String comp = txtComplemento.getText().trim();
+            String bairro = txtBairro.getText().trim();
+            String cidade = txtCidade.getText().trim();
+            String estado = txtEstado.getText().trim();
+            String cep = txtCep.getText().trim();
+
+            // Validação básica
+            if (nome.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Nome é obrigatório.", "Preenchimento Obrigatório", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 1. Salvar/Atualizar Fornecedor
+            Fornecedor f = fornecedor == null ? new Fornecedor() : fornecedor;
+            f.setNome(nome);
+            f.setInscricao(insc);
+            f.setTipoPessoa(cbTipo.getSelectedIndex());
+            f.setFantasia(fants);
+            f.setTelefone(tel);
+            f.setEmail(email);
+            f.setEndereco(logr);
+            f.setNumero(num);
+            f.setComplemento(comp);
+            f.setBairro(bairro);
+            f.setCidade(cidade);
+            f.setEstado(estado);
+            f.setCEP(cep);
+            f.setStatus(cbStatus.getSelectedIndex());
+
+            FornecedorDAO fornecedorDAO = new FornecedorDAO();
+            fornecedorDAO.salvar(f);
+            
+            // 2. Tratamento do contrato
+            if (dateInicio.getDate() != null && dateVencimento.getDate() != null) {
+                Contrato contrato = contratoAtual == null ? new Contrato() : contratoAtual;
+                
+                // Garante a associação correta
+                contrato.setFornecedor(f); // Usa o objeto fornecedor já salvo
+                
+                contrato.setDataInicio(dateInicio.getDate());
+                contrato.setDataVencimento(dateVencimento.getDate());
+                
+                if (!txtAnexoPDF.getText().isEmpty()) {
+                    contrato.setCaminho(txtAnexoPDF.getText());
+                }
+                
+                // Configura status padrão se for novo contrato
+                if (contratoAtual == null) {
+                    contrato.setStatus(1); // 1 = Ativo
+                }
+                
+                new ContratoDAO().salvar(contrato);
+            } else if (contratoAtual != null) {
+                new ContratoDAO().excluir(contratoAtual.getId());
+            }
+            
+            dispose();
+        });
+        
+        // Painel ID Contrato
+        JPanel painelIdContrato = new JPanel();
+        painelIdContrato.setLayout(new BoxLayout(painelIdContrato, BoxLayout.Y_AXIS));
+        JLabel lblIdContrato = new JLabel("ID");
+        lblIdContrato.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelIdContrato.add(lblIdContrato);
+        painelIdContrato.add(txtIdContrato);
+
+        // Painel Data Início
+        JPanel painelInicio = new JPanel();
+        painelInicio.setLayout(new BoxLayout(painelInicio, BoxLayout.Y_AXIS));
+        JLabel lblInicio = new JLabel("Data Início");
+        lblInicio.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelInicio.add(lblInicio);
+        painelInicio.add(dateInicio);
+
+        // Painel Data Vencimento
+        JPanel painelVenc = new JPanel();
+        painelVenc.setLayout(new BoxLayout(painelVenc, BoxLayout.Y_AXIS));
+        JLabel lblVenc = new JLabel("Data Final");
+        lblVenc.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelVenc.add(lblVenc);
+        painelVenc.add(dateVencimento);
+
+        // Painel PDF
+        JPanel linhaCampoEBotao = new JPanel();
+        linhaCampoEBotao.setLayout(new BoxLayout(linhaCampoEBotao, BoxLayout.X_AXIS));
+        linhaCampoEBotao.setAlignmentX(Component.LEFT_ALIGNMENT);
+        linhaCampoEBotao.add(txtAnexoPDF);
+        linhaCampoEBotao.add(Box.createRigidArea(new Dimension(5, 0)));
+        linhaCampoEBotao.add(btnAnexarPDF);
+
+        painelAnexo = new JPanel();
+        painelAnexo.setLayout(new BoxLayout(painelAnexo, BoxLayout.Y_AXIS));
+        painelAnexo.add(Box.createRigidArea(new Dimension(0, 5)));
+        painelAnexo.add(linhaCampoEBotao);
+
+        // Linha 1 - ID Contrato, Data Início, Vencimento
+        JPanel linhaC1 = new JPanel();
+        linhaC1.setLayout(new BoxLayout(linhaC1, BoxLayout.X_AXIS));
+        linhaC1.setAlignmentX(Component.LEFT_ALIGNMENT);
+        linhaC1.add(painelIdContrato);
+        linhaC1.add(Box.createRigidArea(new Dimension(10, 0)));
+        linhaC1.add(painelInicio);
+        linhaC1.add(Box.createRigidArea(new Dimension(10, 0)));
+        linhaC1.add(painelVenc);
+        linhaC1.add(Box.createRigidArea(new Dimension(10, 0)));
+        linhaC1.add(painelAnexo);
+
+        // Painel Contrato
+        abaContrato.setLayout(new BoxLayout(abaContrato, BoxLayout.Y_AXIS));
+        abaContrato.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        abaContrato.add(linhaC1);
+        abaContrato.add(Box.createVerticalStrut(15));
 
         abas.addTab("Contrato", abaContrato);
+        abas.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
 
-        setContentPane(abas);
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JPanel topo = new JPanel();
+        topo.setLayout(new BorderLayout());
+        topo.add(linha1, BorderLayout.CENTER);
+        
+        mainPanel.add(topo, BorderLayout.NORTH);
+        mainPanel.add(abas, BorderLayout.CENTER);
+
+        setContentPane(mainPanel);
+
+    }
+    
+    private void carregarPDFVisualizacao(String caminhoPDF) {
+        try {
+            File file = new File(caminhoPDF);
+            if (file.exists()) {
+                PDDocument document = Loader.loadPDF(file);
+                PDFRenderer pdfRenderer = new PDFRenderer(document);
+
+                BufferedImage bim = pdfRenderer.renderImageWithDPI(0, 100, ImageType.RGB);
+                ImageIcon icon = new ImageIcon(bim.getScaledInstance(105, 140, Image.SCALE_SMOOTH));
+                JLabel label = new JLabel(icon);
+
+                JPanel pdfPanel = new JPanel(new BorderLayout());
+                pdfPanel.add(label, BorderLayout.CENTER);
+                pdfPanel.setPreferredSize(new Dimension(105, 140));
+                pdfPanel.setMaximumSize(new Dimension(105, 140));
+                pdfPanel.setMinimumSize(new Dimension(105, 140));
+
+                painelAnexo.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+                painelAnexo.setPreferredSize(new Dimension(105, 140));
+                painelAnexo.setMaximumSize(new Dimension(105, 140));
+                painelAnexo.setMinimumSize(new Dimension(105, 140));
+
+                painelAnexo.removeAll();
+                painelAnexo.add(pdfPanel);
+                painelAnexo.revalidate();
+                painelAnexo.repaint();
+
+                document.close();
+            }
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar PDF: " + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
