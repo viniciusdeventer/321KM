@@ -1,8 +1,7 @@
-package view.fornecedor;
+package view.cliente;
 
-import dao.FornecedorDAO;
-import model.Fornecedor;
-import controller.FornecedorController;
+import dao.ClienteDAO;
+import model.Cliente;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -11,14 +10,12 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import component.*;
 
-public class FornecedorPanel extends JPanel {
+public class ClientePanel extends JPanel {
     private JTable tabela;
     private DefaultTableModel modelo;
     private JTextField campoBusca;
-    private FornecedorController controller;
 
-    public FornecedorPanel(FornecedorController controller) {
-        this.controller = controller;
+    public ClientePanel() {
         setLayout(new BorderLayout());
 
         // Painel de busca
@@ -33,31 +30,26 @@ public class FornecedorPanel extends JPanel {
 
         add(painelBusca, BorderLayout.NORTH);
 
-        modelo = new DefaultTableModelNaoEditavel(new String[]{"ID", "Nome", "Fantasia", "Inscrição"}, 0) {
+        modelo = new DefaultTableModelNaoEditavel(new String[]{"ID", "Nome", "Telefone", "E-mail"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
-
         tabela = new JTable(modelo);
-
         TabelaUtils.adicionarDuploClique(
-            tabela,
-            modelo,
-            id -> new FornecedorDAO().listar().stream()
-                    .filter(p -> p.getId() == id)
-                    .findFirst()
-                    .orElse(null),
-            fornecedor -> {
-                new FornecedorForm(this, fornecedor, controller).setVisible(true);
-                atualizarTabela();
-            }
+        	    tabela,
+        	    modelo,
+        	    id -> new ClienteDAO().listar().stream()
+        	            .filter(p -> p.getId() == id)
+        	            .findFirst()
+        	            .orElse(null),
+        	    cliente -> new ClienteForm(this, cliente).setVisible(true)
         );
 
         JButton btnNovo = new JButton("Novo");
         btnNovo.addActionListener(e -> {
-            new FornecedorForm(this, null, controller).setVisible(true);
+            new ClienteForm(this, null).setVisible(true);
             atualizarTabela();
         });
 
@@ -66,32 +58,33 @@ public class FornecedorPanel extends JPanel {
             int row = tabela.getSelectedRow();
             if (row >= 0) {
                 int id = (int) modelo.getValueAt(row, 0);
-                new FornecedorDAO().excluir(id);
+                new ClienteDAO().excluir(id);
                 atualizarTabela();
             }
         });
 
         JPanel botoes = new JPanel(new FlowLayout());
-        botoes.add(btnNovo);
+        botoes.add(btnNovo);;
         botoes.add(btnExcluir);
 
         add(new JScrollPane(tabela), BorderLayout.CENTER);
         add(botoes, BorderLayout.SOUTH);
-
     }
 
     private void atualizarTabela() {
         modelo.setRowCount(0);
 
         String filtro = (campoBusca != null) ? campoBusca.getText().trim() : "";
-        List<Fornecedor> lista = new FornecedorDAO().buscar(filtro);
+        List<Cliente> lista = new ClienteDAO().buscar(filtro);
 
-        for (Fornecedor p : lista) {
+        for (Cliente v : lista) {
             modelo.addRow(new Object[]{
-                p.getId(),
-                p.getNome(),
-                p.getFantasia(),
-                p.getInscricao()
+                v.getId(),
+                //v.getIdUsuario(),
+                v.getNome(),
+                v.getTelefone(),
+                v.getEmail(),
+                //v.getStatus() == 1 ? "Ativo" : "Inativo"
             });
         }
     }

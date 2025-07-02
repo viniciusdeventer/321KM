@@ -15,7 +15,14 @@ public class UsuarioDAO {
 
     public Usuario login(String login, String senhaDigitada) {
         try {
-            String sql = "SELECT * FROM Usuarios WHERE Usuario=? AND Status = 1";
+            //String sql = "SELECT * FROM Usuarios WHERE Usuario=? AND Status = 1";
+        	String sql = " SELECT U.*, " +
+   			             " C.Nome AS NomeCliente, " +
+   			             " V.Nome AS NomeVendedor " +
+   			             " FROM Usuarios U " + 
+   			             " LEFT JOIN Clientes C ON U.ID_Referencia = C.ID_Cliente " + 
+						 " LEFT JOIN Vendedores V ON U.ID_Referencia = V.ID_Vendedor " +
+						 " WHERE Usuario=? AND U.Status = 1 ";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, login);
             ResultSet rs = stmt.executeQuery();
@@ -30,6 +37,8 @@ public class UsuarioDAO {
                         rs.getString("Usuario"),
                         senhaHashBanco,
                         rs.getInt("Tipo_Usuario"),
+                        rs.getInt("ID_Referencia"),
+                        rs.getString("NomeCliente") != null ? rs.getString("NomeCliente") : rs.getString("NomeVendedor"),
                         rs.getInt("Status")
                     );
                 }
@@ -44,13 +53,20 @@ public class UsuarioDAO {
         List<Usuario> lista = new ArrayList<>();
         try {
             Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT * FROM Usuarios");
+            ResultSet rs = stmt.executeQuery(" SELECT U.*, " +
+							   			     " C.Nome AS NomeCliente, " +
+							   			     " V.Nome AS NomeVendedor " +
+						            		 " FROM Usuarios U " + 
+            								 " LEFT JOIN Clientes C ON U.ID_Referencia = C.ID_Cliente " + 
+            								 " LEFT JOIN Vendedores V ON U.ID_Referencia = V.ID_Vendedor ");
             while (rs.next()) {
                 lista.add(new Usuario(
                     rs.getInt("ID_Usuario"),
                     rs.getString("Usuario"),
                     rs.getString("Senha"),
                     rs.getInt("Tipo_Usuario"),
+                    rs.getInt("ID_Referencia"),
+                    rs.getString("NomeCliente") != null ? rs.getString("NomeCliente") : rs.getString("NomeVendedor"),
                     rs.getInt("Status")
                 ));
             }
@@ -63,7 +79,14 @@ public class UsuarioDAO {
     public List<Usuario> buscar(String filtro) {
         List<Usuario> busca = new ArrayList<>();
         try {
-            String sql = "SELECT * FROM Usuarios WHERE LOWER(Usuario) LIKE ?";
+            //String sql = "SELECT * FROM Usuarios WHERE LOWER(Usuario) LIKE ? AND Status = 1";
+        	String sql = " SELECT U.*, " +
+        			     " C.Nome AS NomeCliente, " +
+        			     " V.Nome AS NomeVendedor " +
+        			     " FROM Usuarios U " + 
+						 " LEFT JOIN Clientes C ON U.ID_Referencia = C.ID_Cliente " + 
+						 " LEFT JOIN Vendedores V ON U.ID_Referencia = V.ID_Vendedor " +
+						 " WHERE LOWER(U.Usuario) LIKE ? AND U.Status = 1 ";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, "%" + filtro.toLowerCase() + "%");
             ResultSet rs = stmt.executeQuery();
@@ -73,6 +96,8 @@ public class UsuarioDAO {
                     rs.getString("Usuario"),
                     rs.getString("Senha"),
                     rs.getInt("Tipo_Usuario"),
+                    rs.getInt("ID_Referencia"),
+                    rs.getString("NomeCliente") != null ? rs.getString("NomeCliente") : rs.getString("NomeVendedor"),
                     rs.getInt("Status")
                 ));
             }
@@ -89,22 +114,24 @@ public class UsuarioDAO {
             PreparedStatement stmt;
 
             if (novo) {
-                sql = "INSERT INTO Usuarios (Usuario, Senha, Tipo_Usuario, Status) VALUES (?, ?, ?, ?)";
+                sql = "INSERT INTO Usuarios (Usuario, Senha, Tipo_Usuario, ID_Referencia, Status) VALUES (?, ?, ?, ?, ?)";
                 stmt = conn.prepareStatement(sql);
                 stmt.setString(1, u.getLogin());
                 
                 String senhaHash = BCrypt.withDefaults().hashToString(12, u.getSenha().toCharArray());
                 stmt.setString(2, senhaHash);
                 stmt.setInt(3, u.getTipo());
-                stmt.setInt(4, u.getStatus());
+                stmt.setInt(4, u.getIdReferencia());
+                stmt.setInt(5, u.getStatus());
 
             } else {
-            	sql = "UPDATE Usuarios SET Usuario=?, Tipo_Usuario=?, Status=? WHERE ID_Usuario=?";
+            	sql = "UPDATE Usuarios SET Usuario=?, Tipo_Usuario=?, ID_Referencia=?, Status=? WHERE ID_Usuario=?";
             	stmt = conn.prepareStatement(sql);
             	stmt.setString(1, u.getLogin());
             	stmt.setInt(2, u.getTipo());
-            	stmt.setInt(3, u.getStatus());
-            	stmt.setInt(4, u.getId());
+            	stmt.setInt(3, u.getIdReferencia());
+            	stmt.setInt(4, u.getStatus());
+            	stmt.setInt(5, u.getId());
             }
 
             stmt.executeUpdate();

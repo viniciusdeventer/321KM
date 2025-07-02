@@ -5,14 +5,18 @@ public class Usuario {
     private String login;
     private String senha;
     private int tipoUsuario;
+    private int idReferencia;
+    private String nome;
     private int status;
 
     public Usuario() {}
-    public Usuario(int id, String login, String senha, int tipoUsuario, int status) {
+    public Usuario(int id, String login, String senha, int tipoUsuario, int idReferencia, String nome, int status) {
         this.id = id;
         this.login = login;
         this.senha = senha;
         this.tipoUsuario = tipoUsuario;
+        this.idReferencia = idReferencia;
+        this.nome = nome;
         this.status = status;
     }
 
@@ -42,6 +46,22 @@ public class Usuario {
 	}
 	public void setTipo(int tipoUsuario) {
 		this.tipoUsuario = tipoUsuario;
+	}
+	
+	public int getIdReferencia() {
+		return idReferencia;
+	}
+	
+	public void setIdReferencia(int idReferencia) {
+		this.idReferencia = idReferencia;
+	}
+	
+	public String getNome() {
+		return nome;
+	}
+	
+	public void setNome(String nome) {
+		this.nome = nome;
 	}
 
     public int getStatus() {

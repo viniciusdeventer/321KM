@@ -39,7 +39,7 @@ public class ProdutoDAO {
     public List<Produto> buscar(String filtro) {
         List<Produto> busca = new ArrayList<>();
         try {
-            String sql = "SELECT * FROM Produtos WHERE LOWER(Nome) LIKE ? OR LOWER(Descricao) LIKE ?";
+            String sql = "SELECT * FROM Produtos WHERE Status = 1 AND (LOWER(Nome) LIKE ? OR LOWER(Descricao) LIKE ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
             String filtroLike = "%" + filtro.toLowerCase() + "%";
             stmt.setString(1, filtroLike);

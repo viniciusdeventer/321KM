@@ -1,13 +1,19 @@
 package view.fornecedor;
 
 import dao.FornecedorDAO;
+import dao.ProdutosFornecedorDAO;
 import model.Fornecedor;
-
+import model.ProdutosFornecedor;
+import view.produto.ProdutosFornecedorPanel;
 import dao.ContratoDAO;
 import model.Contrato;
 
+import controller.FornecedorController;
+
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.text.MaskFormatter;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
@@ -19,20 +25,32 @@ import java.io.File;
 import java.io.IOException;
 
 import com.toedter.calendar.JDateChooser;
+
+import component.DefaultTableModelNaoEditavel;
+
 import org.apache.pdfbox.Loader;
+
+import java.util.List;
 
 public class FornecedorForm extends JDialog {
 	
 	private JPanel painelAnexo;
+	private JPanel painelImagem;
     private Contrato contratoAtual;
+    private FornecedorController controller;
+    private Fornecedor fornecedor;
 	
-    public FornecedorForm(Component parent, Fornecedor fornecedor) {
+    public FornecedorForm(Component parent, Fornecedor fornecedor, FornecedorController controller) {
+    	
         super(SwingUtilities.getWindowAncestor(parent) instanceof Frame
                 ? (Frame) SwingUtilities.getWindowAncestor(parent)
                 : null, true);
+        
+        this.controller = controller;
+        this.fornecedor = fornecedor;
 
         setTitle(fornecedor == null ? "Novo Fornecedor" : "Editar Fornecedor");
-        setSize(700, 450);
+        setSize(700, 480);
         setLocationRelativeTo(parent);
 
         JTextField txtId = new JTextField(5);
@@ -50,8 +68,19 @@ public class FornecedorForm extends JDialog {
         txtFantasia.setPreferredSize(new Dimension(280, 25));
         txtFantasia.setMaximumSize(new Dimension(280, 25));
         txtFantasia.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JTextField txtInscricao = new JTextField();
+        
+        final MaskFormatter cnpjMask;
+        final MaskFormatter cpfMask;
+        try {
+            cnpjMask = new MaskFormatter("##.###.###/####-##");
+            cnpjMask.setPlaceholderCharacter('_');
+            cpfMask = new MaskFormatter("###.###.###-##");
+            cpfMask.setPlaceholderCharacter('_');
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        
+        JFormattedTextField txtInscricao = new JFormattedTextField(cnpjMask);
         txtInscricao.setPreferredSize(new Dimension(280, 25));
         txtInscricao.setMaximumSize(new Dimension(280, 25));
         txtInscricao.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -59,7 +88,15 @@ public class FornecedorForm extends JDialog {
         JComboBox<String> cbTipo = new JComboBox<>(new String[]{"Jurídica", "Física"});
         cbTipo.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JTextField txtTelefone = new JTextField();
+        final MaskFormatter telMask;
+        try {
+			telMask = new MaskFormatter("(##) #####-####");
+			telMask.setPlaceholderCharacter('_');
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+        
+        JFormattedTextField txtTelefone = new JFormattedTextField(telMask);
         txtTelefone.setPreferredSize(new Dimension(240, 25));
         txtTelefone.setMaximumSize(new Dimension(240, 25));
         txtTelefone.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -105,6 +142,8 @@ public class FornecedorForm extends JDialog {
         txtCep.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JComboBox<String> cbStatus = new JComboBox<>(new String[]{"Inativo", "Ativo"});
+        cbStatus.setPreferredSize(new Dimension(700, 25));
+        cbStatus.setMaximumSize(new Dimension(700, 25));
         cbStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         if (fornecedor != null) {
@@ -123,6 +162,8 @@ public class FornecedorForm extends JDialog {
             txtEstado.setText(fornecedor.getEstado());
             txtCep.setText(fornecedor.getCEP());
             cbStatus.setSelectedIndex(fornecedor.getStatus());
+        } else {
+            cbStatus.setSelectedIndex(1);
         }
 
         JButton btnSalvar = new JButton("Confirmar");
@@ -162,22 +203,29 @@ public class FornecedorForm extends JDialog {
         painelInscricao.setLayout(new BoxLayout(painelInscricao, BoxLayout.Y_AXIS));
         JLabel lblInscricao = new JLabel("CNPJ");
 
-	    if (fornecedor != null) {
-	         cbTipo.setSelectedIndex(fornecedor.getTipoPessoa());
-	         if (fornecedor.getTipoPessoa() == 1) {
-	             lblInscricao.setText("CPF");
-	         } else {
-	             lblInscricao.setText("CNPJ");
-	         }
-	     }
+        if (fornecedor != null) {
+            cbTipo.setSelectedIndex(fornecedor.getTipoPessoa());
+            if (fornecedor.getTipoPessoa() == 1) {
+                lblInscricao.setText("CPF");
+                txtInscricao.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(cpfMask));
+            } else {
+                lblInscricao.setText("CNPJ");
+                txtInscricao.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(cnpjMask));
+            }
+            txtInscricao.setText(fornecedor.getInscricao());
+        }
 	
-	     cbTipo.addActionListener(e -> {
-	         if (cbTipo.getSelectedIndex() == 1) {
-	             lblInscricao.setText("CPF");
-	         } else {
-	             lblInscricao.setText("CNPJ");
-	         }
-	     });
+        cbTipo.addActionListener(e -> {
+            txtInscricao.setText(""); 
+            txtInscricao.setValue(null);
+            if (cbTipo.getSelectedIndex() == 1) {
+                lblInscricao.setText("CPF");
+                txtInscricao.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(cpfMask));
+            } else {
+                lblInscricao.setText("CNPJ");
+                txtInscricao.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(cnpjMask));
+            }
+        });
 
         lblInscricao.setAlignmentX(Component.LEFT_ALIGNMENT);
         painelInscricao.add(lblInscricao);
@@ -327,12 +375,11 @@ public class FornecedorForm extends JDialog {
         abaGeral.add(Box.createVerticalStrut(15));
         abaGeral.add(painelStatus);
         abaGeral.add(Box.createVerticalStrut(20));
-        abaGeral.add(painelBtn);
 
         abas.addTab("Dados Gerais", abaGeral);
 
         JPanel abaContrato = new JPanel();
-        abaContrato.setLayout(new BoxLayout(abaContrato, BoxLayout.Y_AXIS));
+        abaContrato.setLayout(new BorderLayout());
         abaContrato.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         JTextField txtIdContrato = new JTextField(5);
@@ -350,6 +397,11 @@ public class FornecedorForm extends JDialog {
         dateVencimento.setDateFormatString("dd/MM/yyyy");
         dateVencimento.setMaximumSize(new Dimension(95, 25));
         dateVencimento.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JTextField txtContato = new JTextField();
+        txtContato.setPreferredSize(new Dimension(240, 25));
+        txtContato.setMaximumSize(new Dimension(240, 25));
+        txtContato.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextField txtAnexoPDF = new JTextField();
         Dimension fixedSize = new Dimension(105, 140);
@@ -366,64 +418,35 @@ public class FornecedorForm extends JDialog {
         btnAnexarPDF.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            fileChooser.setFileFilter(new FileNameExtensionFilter("Arquivos PDF", "pdf"));  
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Arquivos PDF", "pdf"));
 
             int option = fileChooser.showOpenDialog(this);
             if (option == JFileChooser.APPROVE_OPTION) {
                 File selectedFile = fileChooser.getSelectedFile();
-                txtAnexoPDF.setText(selectedFile.getAbsolutePath());
-
-                try {
-                    PDDocument document = Loader.loadPDF(selectedFile);
-                    PDFRenderer pdfRenderer = new PDFRenderer(document);
-
-                    BufferedImage bim = pdfRenderer.renderImageWithDPI(0, 100, ImageType.RGB);
-                    ImageIcon icon = new ImageIcon(bim.getScaledInstance(105, 140, Image.SCALE_SMOOTH));
-                    JLabel label = new JLabel(icon);
-
-                    JPanel pdfPanel = new JPanel(new BorderLayout());
-                    pdfPanel.add(label, BorderLayout.CENTER);
-                    pdfPanel.setPreferredSize(fixedSize);
-                    pdfPanel.setMaximumSize(fixedSize);
-                    pdfPanel.setMinimumSize(fixedSize);
-
-                    painelAnexo.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-                    painelAnexo.setPreferredSize(fixedSize);
-                    painelAnexo.setMaximumSize(fixedSize);
-                    painelAnexo.setMinimumSize(fixedSize);
-
-                    painelAnexo.removeAll();
-                    painelAnexo.add(pdfPanel);
-                    painelAnexo.revalidate();
-                    painelAnexo.repaint();
-
-                    document.close();
-                } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(this, "Erro ao carregar PDF: " + ex.getMessage(),
-                            "Erro", JOptionPane.ERROR_MESSAGE);
+                String caminhoCopiado = copiarPDFParaDiretorio(selectedFile);
+                if (caminhoCopiado != null) {
+                    txtAnexoPDF.setText(caminhoCopiado);
+                    try {
+                        mostrarImagemDoPDF(new File(caminhoCopiado)); 
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                        JOptionPane.showMessageDialog(this, "Erro ao carregar PDF: " + e1.getMessage(),
+                                "Erro", JOptionPane.ERROR_MESSAGE);
+                    }
                 }
             }
         });
-        
-        contratoAtual = new ContratoDAO().buscarPorFornecedor(fornecedor.getId());
-        if (contratoAtual != null) {
-            txtIdContrato.setText(String.valueOf(contratoAtual.getId()));
-            dateInicio.setDate(contratoAtual.getDataInicio());
-            dateVencimento.setDate(contratoAtual.getDataVencimento());
-            txtAnexoPDF.setText(contratoAtual.getCaminho());
-            
-            // Carrega visualização do PDF se existir
-            if (contratoAtual.getCaminho() != null && !contratoAtual.getCaminho().isEmpty()) {
-                carregarPDFVisualizacao(contratoAtual.getCaminho());
-            }
-        }
 
+        
+        if (fornecedor != null) {
+            contratoAtual = new ContratoDAO().buscarPorFornecedor(fornecedor.getId());
+        }
+        
         btnSalvar.addActionListener(e -> {
-            // Dados do Fornecedor
             String nome = txtNome.getText().trim();
-            String insc = txtInscricao.getText().trim();
+            String insc = txtInscricao.getText().replaceAll("\\D", "");
             String fants = txtFantasia.getText().trim();
-            String tel = txtTelefone.getText().trim();
+            String tel = txtTelefone.getText().replaceAll("\\D", "");
             String email = txtEmail.getText().trim();
             String logr = txtEndereco.getText().trim();
             String num = txtNumero.getText().trim();
@@ -433,58 +456,35 @@ public class FornecedorForm extends JDialog {
             String estado = txtEstado.getText().trim();
             String cep = txtCep.getText().trim();
 
-            // Validação básica
             if (nome.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Nome é obrigatório.", "Preenchimento Obrigatório", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Preencha todos os campos obrigatórios.", "Erro", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // 1. Salvar/Atualizar Fornecedor
             Fornecedor f = fornecedor == null ? new Fornecedor() : fornecedor;
-            f.setNome(nome);
-            f.setInscricao(insc);
-            f.setTipoPessoa(cbTipo.getSelectedIndex());
-            f.setFantasia(fants);
-            f.setTelefone(tel);
-            f.setEmail(email);
-            f.setEndereco(logr);
-            f.setNumero(num);
-            f.setComplemento(comp);
-            f.setBairro(bairro);
-            f.setCidade(cidade);
-            f.setEstado(estado);
-            f.setCEP(cep);
-            f.setStatus(cbStatus.getSelectedIndex());
 
-            FornecedorDAO fornecedorDAO = new FornecedorDAO();
-            fornecedorDAO.salvar(f);
-            
-            // 2. Tratamento do contrato
+            controller.salvarFornecedor(
+                f, nome, insc, cbTipo.getSelectedIndex(),
+                fants, tel, email, logr, num, comp, bairro, cidade, estado, cep, cbStatus.getSelectedIndex()
+            );
+
             if (dateInicio.getDate() != null && dateVencimento.getDate() != null) {
                 Contrato contrato = contratoAtual == null ? new Contrato() : contratoAtual;
-                
-                // Garante a associação correta
-                contrato.setFornecedor(f); // Usa o objeto fornecedor já salvo
-                
-                contrato.setDataInicio(dateInicio.getDate());
-                contrato.setDataVencimento(dateVencimento.getDate());
-                
-                if (!txtAnexoPDF.getText().isEmpty()) {
-                    contrato.setCaminho(txtAnexoPDF.getText());
-                }
-                
-                // Configura status padrão se for novo contrato
-                if (contratoAtual == null) {
-                    contrato.setStatus(1); // 1 = Ativo
-                }
-                
-                new ContratoDAO().salvar(contrato);
+                controller.salvarContrato(
+                    f,
+                    contrato,
+                    dateInicio.getDate(),
+                    dateVencimento.getDate(),
+                    txtContato.getText().trim(),
+                    txtAnexoPDF.getText().isEmpty() ? null : txtAnexoPDF.getText()
+                );
             } else if (contratoAtual != null) {
-                new ContratoDAO().excluir(contratoAtual.getId());
+                controller.excluirContrato(contratoAtual.getId());
             }
-            
+
             dispose();
         });
+
         
         // Painel ID Contrato
         JPanel painelIdContrato = new JPanel();
@@ -510,18 +510,59 @@ public class FornecedorForm extends JDialog {
         painelVenc.add(lblVenc);
         painelVenc.add(dateVencimento);
 
-        // Painel PDF
-        JPanel linhaCampoEBotao = new JPanel();
-        linhaCampoEBotao.setLayout(new BoxLayout(linhaCampoEBotao, BoxLayout.X_AXIS));
-        linhaCampoEBotao.setAlignmentX(Component.LEFT_ALIGNMENT);
-        linhaCampoEBotao.add(txtAnexoPDF);
-        linhaCampoEBotao.add(Box.createRigidArea(new Dimension(5, 0)));
-        linhaCampoEBotao.add(btnAnexarPDF);
+        JPanel painelContato = new JPanel();
+        painelContato.setLayout(new BoxLayout(painelContato, BoxLayout.Y_AXIS));
+        JLabel lblContato = new JLabel("Contato");
+        lblContato.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelContato.add(lblContato);
+        painelContato.add(txtContato);
+        painelContato.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        // Painel do PDF
+        painelImagem = new JPanel();
+        painelImagem.setLayout(new BorderLayout());
+        painelImagem.setPreferredSize(fixedSize);
+        painelImagem.setMaximumSize(fixedSize);
+        painelImagem.setMinimumSize(fixedSize);
+        painelImagem.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
+        // Painel campo + botão
+        JPanel painelCampoBotao = new JPanel();
+        painelCampoBotao.setLayout(new BoxLayout(painelCampoBotao, BoxLayout.X_AXIS));
+        painelCampoBotao.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelCampoBotao.add(Box.createRigidArea(new Dimension(5, 0)));
+        painelCampoBotao.add(btnAnexarPDF);
+
+        // Painel Geral
         painelAnexo = new JPanel();
-        painelAnexo.setLayout(new BoxLayout(painelAnexo, BoxLayout.Y_AXIS));
-        painelAnexo.add(Box.createRigidArea(new Dimension(0, 5)));
-        painelAnexo.add(linhaCampoEBotao);
+        painelAnexo.setLayout(new BoxLayout(painelAnexo, BoxLayout.X_AXIS));
+        painelAnexo.add(painelImagem);
+        painelAnexo.add(Box.createRigidArea(new Dimension(0,5)));
+        painelAnexo.add(painelCampoBotao);
+        
+        if (contratoAtual != null) {
+            txtIdContrato.setText(String.valueOf(contratoAtual.getId()));
+            dateInicio.setDate(contratoAtual.getDataInicio());
+            dateVencimento.setDate(contratoAtual.getDataVencimento());
+            txtContato.setText(contratoAtual.getContato());
+            String caminho = contratoAtual.getCaminho();
+            txtAnexoPDF.setText(caminho);
+
+            if (caminho != null && !caminho.isEmpty()) {
+                File file = new File(caminho);
+                if (file.exists()) {
+                    try {
+                        mostrarImagemDoPDF(file);
+                    } catch (IOException e) {
+                        JOptionPane.showMessageDialog(this, "Erro ao carregar PDF: " + e.getMessage(),
+                                "Erro", JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "Arquivo PDF não encontrado:\n" + caminho,
+                            "Aviso", JOptionPane.WARNING_MESSAGE);
+                }
+            }
+        }
 
         // Linha 1 - ID Contrato, Data Início, Vencimento
         JPanel linhaC1 = new JPanel();
@@ -533,16 +574,25 @@ public class FornecedorForm extends JDialog {
         linhaC1.add(Box.createRigidArea(new Dimension(10, 0)));
         linhaC1.add(painelVenc);
         linhaC1.add(Box.createRigidArea(new Dimension(10, 0)));
+        linhaC1.add(painelContato);
+        linhaC1.add(Box.createRigidArea(new Dimension(10, 0)));
         linhaC1.add(painelAnexo);
 
         // Painel Contrato
-        abaContrato.setLayout(new BoxLayout(abaContrato, BoxLayout.Y_AXIS));
+        abaContrato.setLayout(new BorderLayout());
         abaContrato.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        abaContrato.add(linhaC1);
-        abaContrato.add(Box.createVerticalStrut(15));
+        abaContrato.add(linhaC1, BorderLayout.NORTH);
 
-        abas.addTab("Contrato", abaContrato);
-        abas.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        if (fornecedor != null) {
+            ProdutosFornecedorPanel produtosPanel = new ProdutosFornecedorPanel(fornecedor.getId());
+            produtosPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+            abaContrato.add(produtosPanel, BorderLayout.CENTER);
+        }
+
+        if (contratoAtual != null) {
+	        abas.addTab("Contrato", abaContrato);
+	        abas.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        }
 
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
@@ -554,43 +604,41 @@ public class FornecedorForm extends JDialog {
         
         mainPanel.add(topo, BorderLayout.NORTH);
         mainPanel.add(abas, BorderLayout.CENTER);
+        mainPanel.add(painelBtn, BorderLayout.SOUTH);
 
         setContentPane(mainPanel);
-
     }
     
-    private void carregarPDFVisualizacao(String caminhoPDF) {
+    private String copiarPDFParaDiretorio(File arquivoOrigem) {
+        String pastaDestino = "data/contratos/For_" + fornecedor.getId();
+        File pasta = new File(pastaDestino);
+        if (!pasta.exists()) pasta.mkdirs();
+
+        String nomeArquivo = "Contrato_" + arquivoOrigem.getName();
+        File destino = new File(pasta, nomeArquivo);
+
         try {
-            File file = new File(caminhoPDF);
-            if (file.exists()) {
-                PDDocument document = Loader.loadPDF(file);
-                PDFRenderer pdfRenderer = new PDFRenderer(document);
-
-                BufferedImage bim = pdfRenderer.renderImageWithDPI(0, 100, ImageType.RGB);
-                ImageIcon icon = new ImageIcon(bim.getScaledInstance(105, 140, Image.SCALE_SMOOTH));
-                JLabel label = new JLabel(icon);
-
-                JPanel pdfPanel = new JPanel(new BorderLayout());
-                pdfPanel.add(label, BorderLayout.CENTER);
-                pdfPanel.setPreferredSize(new Dimension(105, 140));
-                pdfPanel.setMaximumSize(new Dimension(105, 140));
-                pdfPanel.setMinimumSize(new Dimension(105, 140));
-
-                painelAnexo.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-                painelAnexo.setPreferredSize(new Dimension(105, 140));
-                painelAnexo.setMaximumSize(new Dimension(105, 140));
-                painelAnexo.setMinimumSize(new Dimension(105, 140));
-
-                painelAnexo.removeAll();
-                painelAnexo.add(pdfPanel);
-                painelAnexo.revalidate();
-                painelAnexo.repaint();
-
-                document.close();
-            }
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar PDF: " + ex.getMessage(),
+            java.nio.file.Files.copy(arquivoOrigem.toPath(), destino.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            return destino.getAbsolutePath();
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao copiar o PDF: " + e.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+    }
+    
+    private void mostrarImagemDoPDF(File file) throws IOException {
+        painelImagem.removeAll();
+
+        try (PDDocument document = Loader.loadPDF(file)) {
+            PDFRenderer pdfRenderer = new PDFRenderer(document);
+            BufferedImage bim = pdfRenderer.renderImageWithDPI(0, 100, ImageType.RGB);
+            ImageIcon icon = new ImageIcon(bim.getScaledInstance(105, 140, Image.SCALE_SMOOTH));
+            JLabel label = new JLabel(icon);
+
+            painelImagem.add(label, BorderLayout.CENTER);
+            painelImagem.revalidate();
+            painelImagem.repaint();
         }
     }
 }

@@ -3,18 +3,28 @@ package view;
 import model.Usuario;
 import view.produto.ProdutoPanel;
 import view.usuario.UsuarioPanel;
+import view.cliente.ClientePanel;
 import view.fornecedor.FornecedorPanel;
+import view.vendedor.VendedorPanel;
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
+
+import controller.FornecedorController;
+import dao.UsuarioDAO;
+
 import java.awt.*;
 import static com.formdev.flatlaf.FlatClientProperties.STYLE;
 
 public class MainView extends JFrame {
 
+	FornecedorController fornecedorController = new FornecedorController();
+	UsuarioDAO usuarioDAO = new UsuarioDAO();
+	
     public MainView(Usuario user) {
+
         setTitle("321KM");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -28,6 +38,8 @@ public class MainView extends JFrame {
         cadastros.add(new DefaultMutableTreeNode("Usuários"));
         cadastros.add(new DefaultMutableTreeNode("Produtos"));
         cadastros.add(new DefaultMutableTreeNode("Fornecedores"));
+        cadastros.add(new DefaultMutableTreeNode("Vendedores"));
+        cadastros.add(new DefaultMutableTreeNode("Clientes"));
 
         root.add(cadastros);
 
@@ -77,7 +89,9 @@ public class MainView extends JFrame {
                 switch (selected) {
                     case "Usuários" -> painelConteudo.add(new UsuarioPanel(), BorderLayout.CENTER);
                     case "Produtos" -> painelConteudo.add(new ProdutoPanel(), BorderLayout.CENTER);
-                    case "Fornecedores" -> painelConteudo.add(new FornecedorPanel(), BorderLayout.CENTER);
+                    case "Fornecedores" -> painelConteudo.add(new FornecedorPanel(fornecedorController), BorderLayout.CENTER);
+                    case "Vendedores" -> painelConteudo.add(new VendedorPanel(), BorderLayout.CENTER);
+                    case "Clientes" -> painelConteudo.add(new ClientePanel(), BorderLayout.CENTER);
                     default -> painelConteudo.add(painelConteudo, BorderLayout.CENTER);
                 }
 
@@ -98,7 +112,7 @@ public class MainView extends JFrame {
 
         JPanel painelDireita = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
         
-        JLabel labelUsuario = new JLabel("" + user.getId());
+        JLabel labelUsuario = new JLabel(user.getNome());
         labelUsuario.setOpaque(true);
         //labelUsuario.setBackground(Color.BLACK);
         //labelUsuario.setForeground(Color.WHITE);

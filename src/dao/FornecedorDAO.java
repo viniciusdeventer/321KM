@@ -48,7 +48,7 @@ public class FornecedorDAO {
     public List<Fornecedor> buscar(String filtro) {
         List<Fornecedor> busca = new ArrayList<>();
         try {
-            String sql = "SELECT * FROM Fornecedores WHERE LOWER(Nome) LIKE ?";
+            String sql = "SELECT * FROM Fornecedores WHERE LOWER(Nome) LIKE ? AND Status = 1";
             PreparedStatement stmt = conn.prepareStatement(sql);
             String filtroLike = "%" + filtro.toLowerCase() + "%";
             stmt.setString(1, filtroLike);
@@ -130,7 +130,7 @@ public class FornecedorDAO {
     
     public void excluir(int id) {
         try {
-            PreparedStatement stmt = conn.prepareStatement("DELETE FROM Fornecedores WHERE ID_Fornecedor=?");
+            PreparedStatement stmt = conn.prepareStatement("UPDATE Fornecedores SET Status = 0 WHERE ID_Fornecedor=?");
             stmt.setInt(1, id);
             stmt.executeUpdate();
         } catch (Exception e) {

@@ -1,7 +1,11 @@
 package view.usuario;
 
+import dao.ClienteDAO;
 import dao.UsuarioDAO;
+import dao.VendedorDAO;
+import model.Cliente;
 import model.Usuario;
+import model.Vendedor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,16 +17,48 @@ public class UsuarioForm extends JDialog {
                 : null, true);
 
         setTitle(usuario == null ? "Novo Usuário" : "Editar Usuário");
-        setSize(300, 275);
+        setSize(350, 350);
         setLocationRelativeTo(parent);
 
         JTextField txtLogin = new JTextField(20);
-        txtLogin.setMaximumSize(new Dimension(300, 25));
+        txtLogin.setMaximumSize(new Dimension(350, 25));
 
         JPasswordField txtSenha = new JPasswordField(20);
-        txtSenha.setMaximumSize(new Dimension(300, 25));
+        txtSenha.setMaximumSize(new Dimension(350, 25));
 
         JComboBox<String> cbTipo = new JComboBox<>(new String[]{"Cliente", "Vendedor", "Administrador"});
+        JComboBox<Object> cbReferencia = new JComboBox<>();
+        cbReferencia.addItem("Selecione");
+        
+        cbTipo.addActionListener(e -> {
+            cbReferencia.removeAllItems();
+            int tipo = cbTipo.getSelectedIndex();
+
+            if (tipo == 0) {
+                for (Cliente c : new ClienteDAO().listar()) {
+                    cbReferencia.addItem(c);
+                }
+            } else  {
+                for (Vendedor v : new VendedorDAO().listar()) {
+                    cbReferencia.addItem(v);
+                }
+            }
+        });
+        
+        cbReferencia.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                          boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Cliente) {
+                    setText(((Cliente) value).getNome());
+                } else if (value instanceof Vendedor) {
+                    setText(((Vendedor) value).getNome());
+                }
+                return this;
+            }
+        });
+        
         JComboBox<String> cbStatus = new JComboBox<>(new String[]{"Inativo", "Ativo"});
 
         if (usuario != null) {
@@ -31,7 +67,9 @@ public class UsuarioForm extends JDialog {
             txtSenha.setEnabled(false);
             cbTipo.setSelectedIndex(usuario.getTipo());
             cbStatus.setSelectedIndex(usuario.getStatus());
-        }
+        } else {
+			cbStatus.setSelectedIndex(1);
+		}
 
         JButton btnSalvar = new JButton("Confirmar");
         btnSalvar.addActionListener(e -> {
@@ -48,6 +86,13 @@ public class UsuarioForm extends JDialog {
             u.setSenha(senha);
             u.setTipo(cbTipo.getSelectedIndex());
             u.setStatus(cbStatus.getSelectedIndex());
+            
+            Object ref = cbReferencia.getSelectedItem();
+            if (ref instanceof Cliente cliente) {
+                u.setIdReferencia(cliente.getId());
+            } else if (ref instanceof Vendedor vendedor) {
+                u.setIdReferencia(vendedor.getId());
+            }
 
             new UsuarioDAO().salvar(u);
             dispose();
@@ -83,6 +128,15 @@ public class UsuarioForm extends JDialog {
         painelTipo.add(lblTipo);
         painelTipo.add(cbTipo);
 
+        JPanel painelReferencia = new JPanel();
+        painelReferencia.setLayout(new BoxLayout(painelReferencia, BoxLayout.Y_AXIS));
+        JLabel lblReferencia = new JLabel("Referência");
+        lblReferencia.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cbReferencia.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelReferencia.add(lblReferencia);
+        painelReferencia.add(cbReferencia);
+        painelReferencia.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
         JPanel painelStatus = new JPanel();
         painelStatus.setLayout(new BoxLayout(painelStatus, BoxLayout.Y_AXIS));
         JLabel lblStatus = new JLabel("Status");
@@ -107,6 +161,8 @@ public class UsuarioForm extends JDialog {
         form.add(painelSenha);
         form.add(Box.createVerticalStrut(15));
         form.add(linhaTipoStatus);
+        form.add(Box.createVerticalStrut(15));
+        form.add(painelReferencia);
         form.add(Box.createVerticalStrut(20));
         form.add(painelBtn);
 

@@ -46,7 +46,7 @@ public class ContratoDAO {
         return lista;
     }
 
-    public Contrato buscarPorId(int id) {
+    public Contrato buscar(int id) {
         try {
             String sql = "SELECT * FROM Contratos_Fornecedor WHERE ID_Contrato = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -133,7 +133,6 @@ public class ContratoDAO {
 
             stmt.executeUpdate();
 
-            // Se for novo, obtém o ID gerado
             if (novo) {
                 ResultSet rs = stmt.getGeneratedKeys();
                 if (rs.next()) {
