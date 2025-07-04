@@ -147,14 +147,14 @@ public class ClienteForm extends JDialog {
         linha2.add(Box.createRigidArea(new Dimension(10, 0)));
         linha2.add(painelStatus);
         
-        JPanel linha3 = new JPanel();
-        linha3.setLayout(new BoxLayout(linha3, BoxLayout.X_AXIS));
-        linha3.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JPanel linha3 = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        linha3.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         if (cliente != null && cliente.getId() > 0) {
-        	setSize(500, 350);
-            linha3.add(Box.createVerticalStrut(10));
-            linha3.add(new CompraPanel(cliente.getId()));
+            setSize(500, 350);
+            CompraPanel compraPanel = new CompraPanel(cliente.getId());
+            compraPanel.setPreferredSize(new Dimension(440, 110)); // ajustável conforme o conteúdo
+            linha3.add(compraPanel);
         }
 
         JPanel painelBtn = new JPanel(new FlowLayout(FlowLayout.RIGHT));

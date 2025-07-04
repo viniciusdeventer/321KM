@@ -17,8 +17,8 @@ public class UsuarioDAO {
         try {
             //String sql = "SELECT * FROM Usuarios WHERE Usuario=? AND Status = 1";
         	String sql = " SELECT U.*, " +
-   			             " C.Nome AS NomeCliente, " +
-   			             " V.Nome AS NomeVendedor " +
+        				 " CASE WHEN U.Tipo_Usuario = 0 THEN C.Nome " +
+        				 " ELSE V.Nome END AS Nome_Usuario " +
    			             " FROM Usuarios U " + 
    			             " LEFT JOIN Clientes C ON U.ID_Referencia = C.ID_Cliente " + 
 						 " LEFT JOIN Vendedores V ON U.ID_Referencia = V.ID_Vendedor " +
@@ -38,7 +38,7 @@ public class UsuarioDAO {
                         senhaHashBanco,
                         rs.getInt("Tipo_Usuario"),
                         rs.getInt("ID_Referencia"),
-                        rs.getString("NomeCliente") != null ? rs.getString("NomeCliente") : rs.getString("NomeVendedor"),
+                        rs.getString("Nome_Usuario"),
                         rs.getInt("Status")
                     );
                 }
@@ -54,8 +54,8 @@ public class UsuarioDAO {
         try {
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(" SELECT U.*, " +
-							   			     " C.Nome AS NomeCliente, " +
-							   			     " V.Nome AS NomeVendedor " +
+							   				 " CASE WHEN U.Tipo_Usuario = 0 THEN C.Nome " +
+							   				 " ELSE V.Nome END AS Nome_Usuario " +
 						            		 " FROM Usuarios U " + 
             								 " LEFT JOIN Clientes C ON U.ID_Referencia = C.ID_Cliente " + 
             								 " LEFT JOIN Vendedores V ON U.ID_Referencia = V.ID_Vendedor ");
@@ -66,7 +66,7 @@ public class UsuarioDAO {
                     rs.getString("Senha"),
                     rs.getInt("Tipo_Usuario"),
                     rs.getInt("ID_Referencia"),
-                    rs.getString("NomeCliente") != null ? rs.getString("NomeCliente") : rs.getString("NomeVendedor"),
+                    rs.getString("Nome_Usuario"),                    
                     rs.getInt("Status")
                 ));
             }
@@ -81,8 +81,8 @@ public class UsuarioDAO {
         try {
             //String sql = "SELECT * FROM Usuarios WHERE LOWER(Usuario) LIKE ? AND Status = 1";
         	String sql = " SELECT U.*, " +
-        			     " C.Nome AS NomeCliente, " +
-        			     " V.Nome AS NomeVendedor " +
+		   				 " CASE WHEN U.Tipo_Usuario = 0 THEN C.Nome " +
+		   				 " ELSE V.Nome END AS Nome_Usuario " +
         			     " FROM Usuarios U " + 
 						 " LEFT JOIN Clientes C ON U.ID_Referencia = C.ID_Cliente " + 
 						 " LEFT JOIN Vendedores V ON U.ID_Referencia = V.ID_Vendedor " +
@@ -97,7 +97,7 @@ public class UsuarioDAO {
                     rs.getString("Senha"),
                     rs.getInt("Tipo_Usuario"),
                     rs.getInt("ID_Referencia"),
-                    rs.getString("NomeCliente") != null ? rs.getString("NomeCliente") : rs.getString("NomeVendedor"),
+                    rs.getString("Nome_Usuario"),
                     rs.getInt("Status")
                 ));
             }

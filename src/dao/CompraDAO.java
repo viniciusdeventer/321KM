@@ -40,6 +40,7 @@ public class CompraDAO {
         try {
             String sql = "SELECT * FROM Compras WHERE ID_Compra = ? AND Status = 1";
             PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, idCliente);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 busca.add(new Compra(

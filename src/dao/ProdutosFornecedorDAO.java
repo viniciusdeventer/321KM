@@ -65,12 +65,12 @@ public class ProdutosFornecedorDAO {
             checkStmt.setInt(1, p.getIdProduto());
             checkStmt.setInt(2, p.getIdFornecedor());
             ResultSet rs = checkStmt.executeQuery();
-            boolean existe = rs.next() && rs.getInt(1) > 0;
+            boolean novo = rs.next() && rs.getInt(1) > 0;
 
             String sql;
             PreparedStatement stmt;
 
-            if (!existe) {
+            if (!novo) {
                 sql = "INSERT INTO Produtos_Fornecedor (ID_Produto, ID_Fornecedor, Valor_Venda, Valor_Custo) VALUES (?, ?, ?, ?)";
                 stmt = conn.prepareStatement(sql);
                 stmt.setInt(1, p.getIdProduto());

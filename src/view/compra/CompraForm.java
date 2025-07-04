@@ -1,11 +1,11 @@
 package view.compra;
 
-import dao.ClienteDAO;
 import dao.CompraDAO;
 import dao.VendedorDAO;
-import model.Cliente;
 import model.Compra;
 import model.Vendedor;
+import view.produto.ProdutosCompraPanel;
+import view.produto.ProdutosFornecedorPanel;
 
 import javax.swing.*;
 import com.toedter.calendar.JDateChooser;
@@ -18,17 +18,17 @@ public class CompraForm extends JDialog {
                 : null, true);
 
         setTitle(compra == null ? "Nova Compra" : "Editar Compra");
-        setSize(500, 270);
+        setSize(500, 350);
         setLocationRelativeTo(parent);
 
         JTextField txtId = new JTextField(5);
-        txtId.setPreferredSize(new Dimension(50, 25));
-        txtId.setMaximumSize(new Dimension(50, 25));
+        txtId.setPreferredSize(new Dimension(10, 25));
+        txtId.setMaximumSize(new Dimension(10, 25));
         txtId.setEnabled(false);
 
         JComboBox<Vendedor> cbVendedor = new JComboBox<>();
-        cbVendedor.setPreferredSize(new Dimension(300, 25));
-        cbVendedor.setMaximumSize(new Dimension(300, 25));
+        cbVendedor.setPreferredSize(new Dimension(370, 25));
+        cbVendedor.setMaximumSize(new Dimension(370, 25));
 
         cbVendedor.addItem(null);
         for (Vendedor v : new VendedorDAO().listar()) {
@@ -102,7 +102,14 @@ public class CompraForm extends JDialog {
         lblId.setHorizontalAlignment(SwingConstants.LEFT);
         painelId.add(lblId, BorderLayout.NORTH);
         painelId.add(txtId, BorderLayout.CENTER);
-        painelId.setMaximumSize(new Dimension(80, 50));
+        painelId.setMaximumSize(new Dimension(30, 50));
+
+        JPanel painelVendedor = new JPanel(new BorderLayout(5, 0));
+        JLabel lblVendedor = new JLabel("Vendedor");
+        lblVendedor.setHorizontalAlignment(SwingConstants.LEFT);
+        painelVendedor.add(lblVendedor, BorderLayout.NORTH);
+        painelVendedor.add(cbVendedor, BorderLayout.CENTER);
+        painelVendedor.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
 
         JPanel painelData = new JPanel(new BorderLayout(5, 0));
         JLabel lblData = new JLabel("Data Compra");
@@ -122,22 +129,39 @@ public class CompraForm extends JDialog {
         linha1.setLayout(new BoxLayout(linha1, BoxLayout.X_AXIS));
         linha1.add(painelId);
         linha1.add(Box.createRigidArea(new Dimension(15, 0)));
-        linha1.add(painelData);
-        linha1.add(Box.createRigidArea(new Dimension(15, 0)));
-        linha1.add(painelStatus);
+        linha1.add(painelVendedor);
         linha1.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPanel painelLinha1Wrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         painelLinha1Wrapper.add(linha1);
         painelLinha1Wrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JPanel painelVendedor = new JPanel(new BorderLayout(5, 0));
-        JLabel lblVendedor = new JLabel("Vendedor");
-        lblVendedor.setHorizontalAlignment(SwingConstants.LEFT);
-        painelVendedor.add(lblVendedor, BorderLayout.NORTH);
-        painelVendedor.add(cbVendedor, BorderLayout.CENTER);
-        painelVendedor.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
-        painelVendedor.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JPanel linha2 = new JPanel();
+        linha2.setLayout(new BoxLayout(linha2, BoxLayout.X_AXIS));
+        linha2.add(painelData);
+        linha2.add(Box.createRigidArea(new Dimension(15, 0)));
+        linha2.add(painelStatus);
+        linha2.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JPanel painelLinha2Wrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        painelLinha2Wrapper.add(linha2);
+        painelLinha2Wrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JPanel linha3 = new JPanel();
+        linha3.setLayout(new BoxLayout(linha3, BoxLayout.X_AXIS));
+        if (compra != null) {
+            ProdutosCompraPanel produtosPanel = new ProdutosCompraPanel(compra.getId());
+            produtosPanel.setPreferredSize(new Dimension(450, 120));
+            produtosPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+            produtosPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+            linha3.add(produtosPanel, BorderLayout.CENTER);
+        }
+        linha3.add(Box.createRigidArea(new Dimension(15, 0)));
+        linha3.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JPanel painelLinha3Wrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        painelLinha3Wrapper.add(linha3);
+        painelLinha3Wrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPanel painelBtn = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         painelBtn.add(btnSalvar);
@@ -145,7 +169,9 @@ public class CompraForm extends JDialog {
 
         form.add(painelLinha1Wrapper);
         form.add(Box.createVerticalStrut(15));
-        form.add(painelVendedor);
+        form.add(painelLinha2Wrapper);
+        form.add(Box.createVerticalStrut(15));
+        form.add(painelLinha3Wrapper);
         form.add(Box.createVerticalStrut(20));
         form.add(painelBtn);
 
